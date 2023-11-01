@@ -1,1 +1,62 @@
-he
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chat with GPT-3</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Chat with GPT-3</h1>
+            <h2>by hassan.ab</h2>
+        </div>
+        <div class="chat-log" id="chat-log">
+            <div class="loader"></div> <!-- Loading indicator -->
+        </div>
+        <textarea id="user-input" placeholder="Type your message..." class="user-input"></textarea>
+        <button id="send-button" class="send-button">Send</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let isProcessing = false;
+
+        $(document).ready(function () {
+            $("#send-button").click(function () {
+                if (isProcessing) return; // Prevent sending new input while processing
+
+                var user_input = $("#user-input").val();
+                if (!user_input) return; // Don't send empty input
+
+                isProcessing = true; // Set processing flag
+                $("#chat-log").append("<p class='user-message'>" + user_input + "</p>");
+                $("#user-input").val("");
+
+                // Show loading indicator
+                $("#chat-log").append("<div class='loader'></div>");
+
+                // Send user input to the server
+                $.ajax({
+                    type: "POST",
+                    url: "/chat",
+                    data: { user_input: user_input },
+                    success: function (data) {
+                        var assistant_response = data.response;
+                        // Remove loading indicator
+                        $(".loader").remove();
+                        $("#chat-log").append("<p class='assistant-message'>" + assistant_response + "</p>");
+                        isProcessing = false; // Reset processing flag
+                    },
+                    error: function () {
+                        // Handle connection error
+                        $(".loader").remove();
+                        $("#chat-log").append("<p class='error-message'>Connection error. Please try again.</p>");
+                        isProcessing = false; // Reset processing flag
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
